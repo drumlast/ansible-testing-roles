@@ -1,46 +1,45 @@
 ---
-- name: Ensure apt deps present
+# Install Vector on Ubuntu (без GPG-ключа, с trusted=yes)
+
+- name: Ensure prerequisites are installed
   ansible.builtin.apt:
-    name: [ "apt-transport-https", "ca-certificates", "gnupg", "curl" ]
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
     state: present
     update_cache: true
+  become: true
+  tags: [install]
 
-- name: Add Vector GPG key
-  ansible.builtin.apt_key:
-    url: "{{ vector_repo_gpg_url }}"
-    state: present
+- name: Add Vector apt repo (trusted=yes, skip gpg check)
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/vector.list
+    content: |
+      deb [trusted=yes] https://packages.timber.io/vector/apt stable main
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  tags: [install]
 
-- name: Add Vector apt repository
-  ansible.builtin.apt_repository:
-    repo: "deb https://repositories.timber.io/public/vector/deb/{{ vector_repo_distribution }} {{ vector_repo_codename }} main"
-    filename: "vector"
-    state: present
-
-- name: Install vector
+- name: Update apt cache after adding Vector repo
   ansible.builtin.apt:
-    name: "{{ 'vector=' + vector_version if vector_version else 'vector' }}"
-    state: present
     update_cache: true
+  become: true
+  tags: [install]
 
-- name: Ensure vector config directory exists
-  ansible.builtin.file:
-    path: "{{ vector_config_path | dirname }}"
-    state: directory
-    owner: "{{ vector_user }}"
-    group: "{{ vector_group }}"
-    mode: "0755"
+- name: Install Vector package
+  ansible.builtin.apt:
+    name: vector
+    state: present
+  become: true
+  tags: [install]
 
-- name: Deploy vector config
-  ansible.builtin.template:
-    src: "vector.yml.j2"
-    dest: "{{ vector_config_path }}"
-    owner: "{{ vector_user }}"
-    group: "{{ vector_group }}"
-    mode: "0644"
-  notify: restart vector
-
-- name: Ensure vector service enabled and started
-  ansible.builtin.systemd:
-    name: "{{ vector_service_name }}"
-    state: started
+- name: Ensure Vector service is enabled and started
+  ansible.builtin.service:
+    name: vector
     enabled: true
+    state: started
+  become: true
+  tags: [install]
