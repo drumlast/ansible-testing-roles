@@ -1,2 +1,1 @@
-vector_repo_gpg_url: "https://repositories.timber.io/public/vector/gpg.4773BD5E0B31B2D6.key"
 vector_repo_list_path: "/etc/apt/sources.list.d/vector.list"

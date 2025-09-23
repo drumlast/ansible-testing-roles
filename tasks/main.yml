@@ -1,5 +1,5 @@
 ---
-# Install Vector on Ubuntu (без GPG-ключа, с trusted=yes)
+# tasks file for vector-role
 
 - name: Ensure prerequisites are installed
   ansible.builtin.apt:
@@ -12,9 +12,9 @@
   become: true
   tags: [install]
 
-- name: Add Vector apt repo (trusted=yes, skip gpg check)
+- name: Add Vector apt repo (trusted=yes, skip GPG check)
   ansible.builtin.copy:
-    dest: /etc/apt/sources.list.d/vector.list
+    dest: "{{ vector_repo_list_path }}"
     content: |
       deb [trusted=yes] https://packages.timber.io/vector/apt stable main
     owner: root
