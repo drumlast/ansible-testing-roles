@@ -2,3 +2,6 @@
 *.BAKBAK
 tasks/main.yml.*:*:*
 tasks/main.yml.*-*
+files/*.tar.gz
+files/vector*
+files/test/
