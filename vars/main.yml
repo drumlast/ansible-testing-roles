@@ -1,1 +1,2 @@
-vector_repo_list_path: "/etc/apt/sources.list.d/vector.list"
+#vector_repo_list_path: "/etc/apt/sources.list.d/vector.list"
+vector_version: "0.38.0"

@@ -1,0 +1,39 @@
+---
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+platforms:
+  - name: ubuntu
+    image: ubuntu:latest
+    privileged: true
+    command: sleep infinity
+    variables:
+      ansible_connection: docker
+      ansible_python_interpreter: /usr/bin/python3
+      ansible_become: false
+      ansible_become_method: sudo
+      ansible_become_user: root
+
+  - name: oracle
+    image: oraclelinux:8
+    privileged: true
+    command: sleep infinity
+    variables:
+      ansible_connection: docker
+      ansible_python_interpreter: /usr/bin/python3
+      ansible_become: false
+      ansible_become_method: sudo
+      ansible_become_user: root
+
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: prepare.yml
+    converge: converge.yml
+    verify: verify.yml
+
+verifier:
+  name: ansible

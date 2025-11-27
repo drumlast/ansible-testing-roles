@@ -1,37 +1,83 @@
 ---
-# tasks file for vector-role
+- name: Create Vector install dir
+  ansible.builtin.file:
+    path: /opt/vector
+    state: directory
+    mode: '0755'
 
-- name: Ensure prerequisites are installed
-  ansible.builtin.apt:
-    name:
-      - curl
-      - apt-transport-https
-      - ca-certificates
-    state: present
-    update_cache: true
-  become: true
-  tags: [install]
+- name: Unarchive Vector distrib
+  ansible.builtin.unarchive:
+    src: vector-0.38.0.tar.gz
+    dest: /opt/vector
+    remote_src: false
 
-- name: Run Vector setup script (adds repo automatically)
-  ansible.builtin.shell: |
-    curl -L https://setup.vector.dev | bash
-  #args:
-  #  warn: false
-  become: true
-  tags: [install]
+- name: Detect vector binary
+  ansible.builtin.shell: "find /opt/vector -maxdepth 4 -type f -name vector | head -n 1"
+  register: vector_path
+  changed_when: false
 
-- name: Install Vector package
-  ansible.builtin.apt:
-    name: vector
-    state: present
-    update_cache: true
-  become: true
-  tags: [install]
+- name: Fail if vector binary not found
+  ansible.builtin.fail:
+    msg: "Vector binary not found after extraction in /opt/vector"
+  when: vector_path.stdout == ""
 
-- name: Ensure Vector service is enabled and started
-  ansible.builtin.service:
-    name: vector
-    enabled: true
-    state: started
-  become: true
-  tags: [install]
+- name: Set vector_root fact
+  ansible.builtin.set_fact:
+    vector_root: "{{ vector_path.stdout | regex_replace('/bin/vector$', '') }}"
+
+- name: Install vector binary
+  ansible.builtin.copy:
+    src: "{{ vector_path.stdout }}"
+    dest: /usr/local/bin/vector
+    remote_src: true
+    mode: '0755'
+
+- name: Ensure /etc/vector exists
+  ansible.builtin.file:
+    path: /etc/vector
+    state: directory
+    mode: '0755'
+
+- name: Deploy vector config
+  ansible.builtin.copy:
+    src: vector.yaml
+    #src: "{{ vector_root }}/config/examples/vector.yml"
+    dest: /etc/vector/vector.yaml
+    #remote_src: true
+    mode: '0644'
+
+- name: Install vector systemd unit file
+  ansible.builtin.copy:
+    src: "{{ vector_root }}/etc/systemd/vector.service"
+    dest: /etc/systemd/system/vector.service
+    remote_src: true
+    mode: '0644'
+  when:
+    - ansible_service_mgr == 'systemd'
+    - ansible_virtualization_type != 'docker'
+
+- name: Reload systemd
+  ansible.builtin.command: systemctl daemon-reload
+  when:
+    - ansible_service_mgr == 'systemd'
+    - ansible_virtualization_type != 'docker'
+
+- name: Enable and start vector service
+  ansible.builtin.command: systemctl enable --now vector
+  when:
+    - ansible_service_mgr == 'systemd'
+    - ansible_virtualization_type != 'docker'
+
+
+- name: Verify vector binary availability
+  #ansible.builtin.command: which vector
+  shell: command -v vector
+  register: vector_bin
+  changed_when: false
+  ignore_errors: true
+
+- name: Assert binary exists
+  ansible.builtin.assert:
+    that:
+      - vector_bin.stdout != ""
+    fail_msg: "Vector binary not found in PATH after installation!"

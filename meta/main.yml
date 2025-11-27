@@ -1,14 +1,25 @@
+#---
+#galaxy_info:
+#  role_name: vector_role
+#  author: Anatoly Ivanov
+#  description: Install and configure Vector for log shipping to ClickHouse.
+#  license: MIT
+#  min_ansible_version: "2.12"
+#
+#  platforms:
+#    - name: Ubuntu
+#      versions:
+#        - noble
+#
+#dependencies: []
+
 ---
 galaxy_info:
-  role_name: vector_role
-  author: Anatoly Ivanov
-  description: Install and configure Vector for log shipping to ClickHouse.
+  author: fops
+  description: Vector role for Netology Molecule tests
   license: MIT
-  min_ansible_version: "2.12"
-
-  platforms:
-    - name: Ubuntu
-      versions:
-        - noble
+  min_ansible_version: 2.10
+  namespace: drumlast
+  role_name: vector
 
 dependencies: []

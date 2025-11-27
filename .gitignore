@@ -1,0 +1,4 @@
+*.BAK
+*.BAKBAK
+tasks/main.yml.*:*:*
+tasks/main.yml.*-*

@@ -1,0 +1,16 @@
+---
+- name: Verify vector
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check vector binary exists
+      shell: command -v  vector
+      register: vector_bin
+      changed_when: false
+      ignore_errors: true
+
+    - name: Assert vector installed
+      assert:
+        that:
+          - vector_bin.stdout != ""
+        fail_msg: "Vector binary not found!"

@@ -1,0 +1,2 @@
+[tool.molecule]
+role_name_check = false
