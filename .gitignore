@@ -5,3 +5,5 @@ tasks/main.yml.*-*
 files/*.tar.gz
 files/vector*
 files/test/
+ubuntu*
+vector-tox*
